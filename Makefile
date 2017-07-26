@@ -48,12 +48,13 @@ deploy:
 	kubectl create -f 10deployment.yaml
 
 # update existing deploy
-deployupdate:
-	kubectl apply -f 10deployment.yaml
-	
-#expose a service
-expose:
-	kubectl expose deployment rapido --type=LoadBalancer --name=rapido-service
+update:
+	mvn clean install
+	docker build -t rapido .
+	docker tag rapido gcr.io/$(RAPIDO_PROJECT)/rapido:latest
+	gcloud docker -- push gcr.io/$(RAPIDO_PROJECT)/rapido:latest
+	cat 10deployment.yaml | sed -e 's/\(gcr.io\/\).*\(\/rapido\)/\1'$(RAPIDO_PROJECT)'\2/g' | kubectl apply -f -
+
 	
 # list all pods
 podlist:
@@ -61,20 +62,18 @@ podlist:
 	
 ip:
 	kubectl get service rapido-service
-	
+
+# remote the cluster
 deleteall:
 	gcloud container clusters delete rapido
 	
-# gcloud config set project $(RAPIDO_PROJECT)
-#	gcloud config list
-#	gcloud container clusters create $(RAPIDO_CLUSTER) --machine-type=$(RAPIDO_MACHINE) --disk-size=$(RAPIDO_DISK) --num-nodes=$(RAPIDO_NUM_NODES)
-#	gcloud config set container/cluster $(RAPIDO_CLUSTER)
-#	gcloud container clusters get-credentials $(RAPIDO_CLUSTER)
-#	docker build -t rapido .
-#	docker tag rapido gcr.io/$(RAPIDO_PROJECT)/rapido:latest
-#	gcloud docker -- push gcr.io/$(RAPIDO_PROJECT)/rapido:latest
-#	kubectl create -f 10deployment.yaml
+#expose a service to the internet
+expose:
+	kubectl expose deployment rapido --type=LoadBalancer --name=rapido-service
+	
+# building and deploying everything at once
 deployall:
+	mvn clean install
 	gcloud config set project $(RAPIDO_PROJECT)
 	gcloud config list
 	gcloud container clusters create $(RAPIDO_CLUSTER) --machine-type=$(RAPIDO_MACHINE) --disk-size=$(RAPIDO_DISK) --num-nodes=$(RAPIDO_NUM_NODES)
@@ -83,5 +82,5 @@ deployall:
 	docker build -t rapido .
 	docker tag rapido gcr.io/$(RAPIDO_PROJECT)/rapido:latest
 	gcloud docker -- push gcr.io/$(RAPIDO_PROJECT)/rapido:latest
-	kubectl create -f 10deployment.yaml
+	cat 10deployment.yaml | sed -e 's/\(gcr.io\/\).*\(\/rapido\)/\1'$(RAPIDO_PROJECT)'\2/g' | kubectl create -f -
 	

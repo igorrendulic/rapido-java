@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: rapido
-        image: gcr.io/${RAPIDO_PROJECT}/rapido:latest
+        image: gcr.io/RAPIDO_PROJECT/rapido:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
