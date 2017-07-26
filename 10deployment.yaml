@@ -1,0 +1,27 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: rapido
+  name: rapido
+  labels:
+    name: rapido
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rapido
+    spec:
+      containers:
+      - name: rapido
+        image: gcr.io/${RAPIDO_PROJECT}/rapido:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - "java -jar /Rapido-0.0.1.jar production"
